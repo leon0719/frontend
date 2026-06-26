@@ -1,1 +1,1 @@
-export { apiGet, ApiError } from "./client";
+export { ApiError, apiGet } from "./client";

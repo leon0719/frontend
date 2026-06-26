@@ -1,5 +1,3 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
 import {
   createMemoryHistory,
   createRootRoute,
@@ -7,6 +5,8 @@ import {
   createRouter,
   RouterProvider,
 } from "@tanstack/react-router";
+import { render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { HomePage } from "@/pages/home";
 
 function renderWithRouter(ui: React.ReactNode) {
@@ -27,7 +27,7 @@ describe("HomePage", () => {
   it("renders the template heading", async () => {
     renderWithRouter(<HomePage />);
     await waitFor(() =>
-      expect(screen.getByRole("heading", { name: /React FSD Template/i })).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: /React FSD Template/i })).toBeInTheDocument(),
     );
   });
 });
