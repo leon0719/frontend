@@ -7,8 +7,9 @@ import {
 } from "@tanstack/react-router";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { PlaygroundPage } from "@/pages/playground";
+import { useGreetingStore } from "./model/use-greeting-store";
 
 function renderWithRouter(ui: React.ReactNode) {
   const rootRoute = createRootRoute();
@@ -25,6 +26,10 @@ function renderWithRouter(ui: React.ReactNode) {
 }
 
 describe("PlaygroundPage", () => {
+  beforeEach(() => {
+    useGreetingStore.setState({ name: "" });
+  });
+
   it("shows a validation error when name is too short", async () => {
     const user = userEvent.setup();
     renderWithRouter(<PlaygroundPage />);
