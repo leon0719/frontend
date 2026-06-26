@@ -1,32 +1,39 @@
-# React + TypeScript + Vite
+# React FSD Template
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Production-ready React 前端模板：Vite + React 19 + TypeScript，採 Feature-Sliced Design
+(pages-first) 架構，Biome 單一工具鏈。
 
-Currently, two official plugins are available:
+## Stack
+| 面向 | 技術 |
+| --- | --- |
+| 建置 | Vite 8 + React 19 + TS |
+| 路由 | TanStack Router |
+| 伺服器資料 | TanStack Query |
+| 樣式 | Tailwind v4 + shadcn 風格元件 |
+| 表單 | React Hook Form + Zod |
+| 狀態 | Zustand |
+| 測試 | Vitest + Testing Library |
+| Lint/Format | Biome |
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+## Quick Start
+```bash
+cp .env.example .env.local   # 視需要填 VITE_API_BASE_URL
+bun install
+bun run dev                  # http://localhost:5173
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Scripts
+`dev` · `build` · `format` · `lint` · `type-check` · `test` · `test:watch`
+
+## 架構
+見 `CLAUDE.md`。簡述：FSD 分層 `app / pages / shared`（pages-first，需要時再下沉），
+import 只能往下層、跨 slice 走 `index.ts` public API、一律用 `@/` 別名。
+
+## 目錄
+```
+src/
+├── app/      進入點、providers、router
+├── pages/    路由級頁面（home、demo）
+├── shared/   api client、config、ui、lib
+└── test/     vitest setup
+```
