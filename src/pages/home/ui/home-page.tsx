@@ -8,9 +8,14 @@ export function HomePage() {
       <p className="mt-2 text-foreground/70">
         Vite + React 19 + TanStack + Tailwind，採 FSD pages-first 架構。
       </p>
-      <Link to="/demo" className="mt-6 inline-block">
-        <Button>前往 Demo 頁</Button>
-      </Link>
+      <div className="mt-6 flex gap-3">
+        <Link to="/demo">
+          <Button>前往 Demo 頁</Button>
+        </Link>
+        <Link to="/playground">
+          <Button variant="outline">前往 Playground</Button>
+        </Link>
+      </div>
     </main>
   );
 }

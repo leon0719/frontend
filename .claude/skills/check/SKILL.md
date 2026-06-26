@@ -9,7 +9,7 @@ description: Run the full local quality gate for this template — Biome check, 
 
 ```bash
 bun run format        # Biome 格式化 + lint 修正 + 整理 import
-bun run type-check    # tsc --noEmit
+bun run type-check    # tsc --noEmit -p tsconfig.app.json
 bun run test          # Vitest run
 ```
 

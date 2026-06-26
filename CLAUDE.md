@@ -7,7 +7,7 @@
 - `bun run build` — 型別檢查 + 打包
 - `bun run format` — Biome 格式化 + 修正 + 整理 import
 - `bun run lint` — Biome 靜態檢查
-- `bun run type-check` — `tsc --noEmit`
+- `bun run type-check` — `tsc --noEmit -p tsconfig.app.json`
 - `bun run test` / `bun run test:watch` — Vitest
 
 ## Architecture：FSD v2.1（pages-first）
