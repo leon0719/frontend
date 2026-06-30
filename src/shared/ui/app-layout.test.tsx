@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@tanstack/react-router", () => ({
   Outlet: () => <div>outlet</div>,
-  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
+  Link: ({ children }: { children: React.ReactNode }) => <a href="/">{children}</a>,
 }));
 
 import { useAuthStore } from "@/shared/auth";

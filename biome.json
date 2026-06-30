@@ -11,6 +11,16 @@
     "rules": {
       "recommended": true,
       "suspicious": { "noExplicitAny": "warn" },
+      "a11y": {
+        "useValidAriaRole": {
+          "level": "error",
+          "options": { "ignoreNonDom": true }
+        },
+        "noLabelWithoutControl": {
+          "level": "error",
+          "options": { "inputComponents": ["Input"] }
+        }
+      },
       "style": {
         "noRestrictedImports": {
           "level": "error",
