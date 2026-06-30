@@ -19,7 +19,7 @@ const makeStorage = (): Storage => {
       store = {};
     },
     key: () => null,
-    length: 0,
+    get length() { return Object.keys(store).length; },
   } as Storage;
 };
 
@@ -64,11 +64,13 @@ describe("api client", () => {
   });
 
   it("throws ApiError with status and payload on non-2xx", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ message: "nope" }), {
-        status: 422,
-        headers: { "Content-Type": "application/json" },
-      }),
+    vi.spyOn(globalThis, "fetch").mockImplementation(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({ message: "nope" }), {
+          status: 422,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
     );
     await expect(apiGet("/bad")).rejects.toMatchObject({
       name: "ApiError",

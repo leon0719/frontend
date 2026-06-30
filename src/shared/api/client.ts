@@ -20,16 +20,12 @@ function resolveUrl(path: string): string {
 }
 
 async function parseBody(res: Response): Promise<unknown> {
+  const text = await res.text();
+  if (!text) return null;
   try {
-    const text = await res.text();
-    if (!text) return null;
-    try {
-      return JSON.parse(text);
-    } catch {
-      return text;
-    }
+    return JSON.parse(text);
   } catch {
-    return null;
+    return text;
   }
 }
 
