@@ -1,9 +1,13 @@
-import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
+import { createRootRoute, createRoute, createRouter, redirect } from "@tanstack/react-router";
+import { AdminPage } from "@/pages/admin";
 import { DemoPage } from "@/pages/demo";
 import { HomePage } from "@/pages/home";
+import { LoginPage } from "@/pages/login";
 import { PlaygroundPage } from "@/pages/playground";
+import { useAuthStore } from "@/shared/auth";
+import { AppLayout } from "@/shared/ui";
 
-const rootRoute = createRootRoute({ component: Outlet });
+const rootRoute = createRootRoute({ component: AppLayout });
 
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -20,8 +24,29 @@ const playgroundRoute = createRoute({
   path: "/playground",
   component: PlaygroundPage,
 });
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/login",
+  component: LoginPage,
+});
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin",
+  beforeLoad: () => {
+    if (useAuthStore.getState().status !== "authenticated") {
+      throw redirect({ to: "/login" });
+    }
+  },
+  component: AdminPage,
+});
 
-const routeTree = rootRoute.addChildren([homeRoute, demoRoute, playgroundRoute]);
+const routeTree = rootRoute.addChildren([
+  homeRoute,
+  demoRoute,
+  playgroundRoute,
+  loginRoute,
+  adminRoute,
+]);
 
 export const router = createRouter({ routeTree });
 
