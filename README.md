@@ -93,6 +93,19 @@ const { hasRole } = usePermission();
 // 路由硬守衛：createRoute({ beforeLoad: () => { ... throw redirect({ to: "/login" }) } })
 ```
 
+## i18n（多語）
+支援 `zh-TW`（預設）與 `en`，語言偏好存於 localStorage（`app.lang`）。
+
+```tsx
+import { useTranslation } from "react-i18next";
+const { t } = useTranslation();
+<h1>{t("auth.login.title")}</h1>
+```
+
+切換語言：header 的 `<LanguageSwitcher />`，或 `i18n.changeLanguage("en")`。
+
+新增語言：於 `src/shared/i18n/config.ts` 的 `SUPPORTED_LANGUAGES` 與 `resources` 註冊，並新增 `src/shared/i18n/locales/<code>.json`。詞庫 key 以 `zh-TW.json` 為型別來源。
+
 ## 已知限制 / Known Limitations
 
 冷載入 / 硬重新整理 / 直接深連結到受保護路由（如 `/admin`）時，路由的同步 `beforeLoad`

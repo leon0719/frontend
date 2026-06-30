@@ -70,6 +70,15 @@
 - `<AppLayout>`（`shared/ui`）：header（登入者 + 登出）+ `<Outlet />`
 - `useZodForm(schema, options?)`（`shared/lib/form`）：RHF + zod 薄封裝
 
+### i18n（`shared/i18n`）
+- 用法：`const { t } = useTranslation();` → `t("auth.login.title")`；切換語言用 `<LanguageSwitcher />` 或 `i18n.changeLanguage(code)`。
+- 語言：`zh-TW`（預設 + fallback）、`en`；偵測 localStorage(`app.lang`) → navigator。
+- 加語言：在 `SUPPORTED_LANGUAGES` 增一項，並新增 `locales/<code>.json`，於 `config.ts` 的 `resources` 註冊。
+- 加 key：在 `locales/zh-TW.json` 新增（zh-TW 為型別來源，key 會自動有型別），再補其他語言。
+- 型別安全：`i18next.d.ts` 以 zh-TW 詞庫宣告合併 `CustomTypeOptions`，未知 key 會編譯報錯。
+- zod 訊息：schema 的 message 放 i18n key（如 `"auth.login.usernameRequired"`），畫面以 `t(errors.x.message)` 渲染。
+- ErrorBoundary 特例：它位於 `I18nextProvider` 之外，故用全域 `i18n.t(...)` 而非 `useTranslation` hook。
+
 ## 開發方式
 - **TDD**：每個原件先寫失敗測試（RED）→ 最小實作（GREEN）→ 重構（REFACTOR）。
 - 新增 page 用 `scaffold-page` skill；變更後跑 `check` skill（Biome + tsc + Vitest）。
