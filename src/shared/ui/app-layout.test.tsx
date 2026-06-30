@@ -19,6 +19,11 @@ describe("AppLayout", () => {
     expect(screen.getByText("outlet")).toBeInTheDocument();
   });
 
+  it("always renders the language switcher", () => {
+    render(<AppLayout />);
+    expect(screen.getByRole("combobox", { name: /language/i })).toBeInTheDocument();
+  });
+
   it("shows the user name and a logout button when authenticated", () => {
     useAuthStore.setState({
       user: { id: "1", name: "admin", roles: ["admin"] },
