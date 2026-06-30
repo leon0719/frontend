@@ -23,6 +23,6 @@ describe("ErrorBoundary", () => {
         <Boom />
       </ErrorBoundary>,
     );
-    expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+    expect(screen.getByText("發生錯誤")).toBeInTheDocument();
   });
 });

@@ -4,7 +4,7 @@
     "logout": "登出",
     "forbidden": "403 — 您沒有存取此頁面的權限",
     "error": {
-      "title": "Something went wrong",
+      "title": "發生錯誤",
       "description": "請重新整理頁面，或稍後再試。"
     }
   },

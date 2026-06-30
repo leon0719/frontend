@@ -7,6 +7,7 @@ import { useAuth } from "@/shared/auth";
 import { useZodForm } from "@/shared/lib/form";
 import { Button, Input } from "@/shared/ui";
 
+// Keep in sync with the zod schema messages below (each must be a valid i18n key).
 type LoginValidationKey = "auth.login.usernameRequired" | "auth.login.passwordRequired";
 
 const schema = z.object({

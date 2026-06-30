@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Button, Input } from "@/shared/ui";
 import { useGreetingStore } from "../model/use-greeting-store";
 
+// Keep in sync with the zod schema messages below (each must be a valid i18n key).
 type PlaygroundFieldKey = "pages.playground.nameMin";
 
 const schema = z.object({
