@@ -49,6 +49,7 @@
 - 守衛：`<RequireAuth>`（未登入導 `/login`）、`<RequireRole role>`（無角色顯示 403）
 - 路由硬守衛：在 `createRoute` 用 `beforeLoad` 檢查 `useAuthStore.getState().status` 並 `throw redirect(...)`
 - 換真後端：實作 `AuthAdapter`（`login/logout/me`）後呼叫 `setAuthAdapter(yourAdapter)`，store/guard/攔截器不動
+- Token 持久化由 AuthAdapter 負責（login 時 persist、logout 時 clear、me 從持久化 token 還原 session）；store 僅在記憶體保存 `state.token`
 - 假帳號（模板示範）：`admin/admin`（admin+user 角色）、`user/user`（user 角色）
 
 > FSD 偏離說明：權限置於 `shared/auth` 而非 `entities/`，因為它同時被 `app`（router guard）與

@@ -56,14 +56,31 @@ src/
 
 ## 接真實後端（取代 fake adapter）
 
+AuthAdapter 負責 token 的持久化（store 只在記憶體保存 state.token）；自訂 adapter 必須在 login 時 persist、logout 時清除，me 依持久化的 token 還原 session。
+
 ```ts
-import { type AuthAdapter, setAuthAdapter } from "@/shared/auth";
-import { apiPost, apiGet } from "@/shared/api";
+import { type AuthAdapter, type AuthSession, setAuthAdapter, tokenStorage } from "@/shared/auth";
+import { apiGet, apiPost } from "@/shared/api";
 
 const realAdapter: AuthAdapter = {
-  login: (c) => apiPost("/auth/login", c),
-  logout: () => apiPost("/auth/logout"),
-  me: () => apiGet("/auth/me").catch(() => null),
+  login: async (c) => {
+    const session = await apiPost<AuthSession>("/auth/login", c); // 後端回傳 { user, token }
+    tokenStorage.set(session.token); // 持久化 token，供下次 me() 還原
+    return session;
+  },
+  logout: async () => {
+    tokenStorage.clear(); // 清除持久化 token
+    await apiPost("/auth/logout");
+  },
+  me: async () => {
+    const token = tokenStorage.get();
+    if (!token) return null;
+    // 冷載入時 state.token 尚未設定，需明確帶入 token
+    const user = await apiGet<AuthSession["user"]>("/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    }).catch(() => null);
+    return user ? { user, token } : null;
+  },
 };
 setAuthAdapter(realAdapter); // 在 app 啟動時呼叫一次
 ```
