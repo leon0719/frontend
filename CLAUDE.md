@@ -40,3 +40,37 @@
 - Biome：indentWidth 2、lineWidth 100、double quotes、organizeImports。
 - `noExplicitAny: warn` — 避免 `any`。
 - 提交前跑 `check` skill 或 `bun run lint && bun run type-check && bun run test`。
+
+## 平台底層（共用原件）
+
+### Auth / 權限（`shared/auth`）
+- `useAuth()` → `{ user, status, isAuthenticated, login, logout }`
+- `usePermission()` → `{ hasRole(role), hasAnyRole(roles) }`（RBAC，角色為主）
+- 守衛：`<RequireAuth>`（未登入導 `/login`）、`<RequireRole role>`（無角色顯示 403）
+- 路由硬守衛：在 `createRoute` 用 `beforeLoad` 檢查 `useAuthStore.getState().status` 並 `throw redirect(...)`
+- 換真後端：實作 `AuthAdapter`（`login/logout/me`）後呼叫 `setAuthAdapter(yourAdapter)`，store/guard/攔截器不動
+- 假帳號（模板示範）：`admin/admin`（admin+user 角色）、`user/user`（user 角色）
+
+> FSD 偏離說明：權限置於 `shared/auth` 而非 `entities/`，因為它同時被 `app`（router guard）與
+> `shared/api`（攔截器）消費；放最底層才能讓「只能上層 import 下層」的鐵律成立。
+
+> 已知限制：冷載入 / 硬重新整理 / 直接深連結到受保護路由（如 `/admin`）時，路由的同步
+> `beforeLoad` 會在 `useAuthStore.init()`（於 mount useEffect 非同步執行）恢復 session
+> 之前就執行，導致已登入使用者被踢回 `/login`，再次導航即可正常進入。此行為偏保守（不會
+> 讓未驗證狀態通過），後續改善方向為讓 `beforeLoad` await 一個 session-ready promise。
+
+### API client（`shared/api`）
+- `apiGet/apiPost/apiPut/apiDelete<T>(path, body?, init?)`
+- 自動從 auth-store 夾帶 `Authorization: Bearer <token>`
+- 非 2xx 丟出 `ApiError`（`status` + `payload`）；401 會自動清除 session
+
+### 其他原件
+- `<ErrorBoundary>`（`shared/ui`）：包在 RouterProvider 外層接住 render 錯誤
+- `<AppLayout>`（`shared/ui`）：header（登入者 + 登出）+ `<Outlet />`
+- `useZodForm(schema, options?)`（`shared/lib/form`）：RHF + zod 薄封裝
+
+## 開發方式
+- **TDD**：每個原件先寫失敗測試（RED）→ 最小實作（GREEN）→ 重構（REFACTOR）。
+- 新增 page 用 `scaffold-page` skill；變更後跑 `check` skill（Biome + tsc + Vitest）。
+- 提交前確認 `bun run lint && bun run type-check && bun run test` 全綠。
+- 設計與計畫文件置於 `docs/superpowers/`（已於 .gitignore 排除，屬本機輔助）。
