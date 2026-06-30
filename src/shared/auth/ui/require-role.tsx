@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { usePermission } from "../lib/use-permission";
 import type { Role } from "../model/types";
 
@@ -10,12 +11,9 @@ interface RequireRoleProps {
 
 export function RequireRole({ role, children, fallback }: RequireRoleProps) {
   const { hasRole } = usePermission();
+  const { t } = useTranslation();
   if (!hasRole(role)) {
-    return (
-      fallback ?? (
-        <div className="p-8 text-center text-destructive">403 — 您沒有存取此頁面的權限</div>
-      )
-    );
+    return fallback ?? <div className="p-8 text-center text-destructive">{t("common.forbidden")}</div>;
   }
   return <>{children}</>;
 }
