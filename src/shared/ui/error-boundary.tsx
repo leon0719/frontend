@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { i18n } from "@/shared/i18n";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -22,11 +23,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render(): ReactNode {
     if (this.state.hasError) {
+      // ErrorBoundary sits OUTSIDE <I18nextProvider>, so the useTranslation
+      // hook is unavailable here; read from the global i18n instance directly.
       return (
         this.props.fallback ?? (
           <div className="p-8 text-center">
-            <h1 className="text-lg font-medium">Something went wrong</h1>
-            <p className="text-foreground/60">請重新整理頁面，或稍後再試。</p>
+            <h1 className="text-lg font-medium">{i18n.t("common.error.title")}</h1>
+            <p className="text-foreground/60">{i18n.t("common.error.description")}</p>
           </div>
         )
       );
