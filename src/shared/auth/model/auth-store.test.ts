@@ -1,10 +1,30 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeAuthAdapter } from "../adapter/fake-adapter";
 import { setAuthAdapter, useAuthStore } from "./auth-store";
 
+const makeStorage = (): Storage => {
+  const store: Record<string, string> = {};
+  return {
+    getItem: (key: string) => store[key] ?? null,
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      for (const k of Object.keys(store)) delete store[k];
+    },
+    key: (i: number) => Object.keys(store)[i] ?? null,
+    get length() {
+      return Object.keys(store).length;
+    },
+  };
+};
+
 describe("useAuthStore", () => {
   beforeEach(() => {
-    localStorage.clear();
+    vi.stubGlobal("localStorage", makeStorage());
     setAuthAdapter(fakeAuthAdapter);
     useAuthStore.setState({ user: null, token: null, status: "idle" });
   });
