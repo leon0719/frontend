@@ -55,6 +55,38 @@ describe("api client", () => {
     expect(headers.get("Authorization")).toBeNull();
   });
 
+  it("does not leak the token to cross-origin absolute URLs", async () => {
+    useAuthStore.setState({ token: "tok-123" });
+    const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(ok({}));
+    await apiGet("https://api.github.com/repos/facebook/react");
+    const init = spy.mock.calls[0][1] as RequestInit;
+    const headers = new Headers(init.headers);
+    expect(headers.get("Authorization")).toBeNull();
+  });
+
+  it("attaches the token to same-origin absolute URLs", async () => {
+    useAuthStore.setState({ token: "tok-123" });
+    const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(ok({}));
+    await apiGet(`${location.origin}/me`);
+    const init = spy.mock.calls[0][1] as RequestInit;
+    const headers = new Headers(init.headers);
+    expect(headers.get("Authorization")).toBe("Bearer tok-123");
+  });
+
+  it("does not clear the session on a cross-origin 401", async () => {
+    useAuthStore.setState({
+      user: { id: "1", name: "admin", roles: ["admin"] },
+      token: "tok",
+      status: "authenticated",
+    });
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("{}", { status: 401, headers: { "Content-Type": "application/json" } }),
+    );
+    await expect(apiGet("https://api.github.com/secure")).rejects.toBeInstanceOf(ApiError);
+    expect(useAuthStore.getState().token).toBe("tok");
+    expect(useAuthStore.getState().status).toBe("authenticated");
+  });
+
   it("sends a JSON body on POST", async () => {
     const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(ok({ ok: true }));
     await apiPost("/items", { name: "x" });

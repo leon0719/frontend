@@ -19,6 +19,15 @@ function resolveUrl(path: string): string {
   return `${env.apiBaseUrl}${path}`;
 }
 
+// Bearer token 只能送往 API 自家 origin(apiBaseUrl,未設定時為目前頁面 origin),
+// 送往其他 host 會把使用者憑證洩漏給第三方。
+function isApiOrigin(url: string): boolean {
+  const apiOrigin = env.apiBaseUrl
+    ? new URL(env.apiBaseUrl, location.origin).origin
+    : location.origin;
+  return new URL(url, location.origin).origin === apiOrigin;
+}
+
 async function parseBody(res: Response): Promise<unknown> {
   const text = await res.text();
   if (!text) return null;
@@ -32,10 +41,12 @@ async function parseBody(res: Response): Promise<unknown> {
 async function request<T>(method: Method, path: string, body?: unknown, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Content-Type", "application/json");
+  const url = resolveUrl(path);
+  const trusted = isApiOrigin(url);
   const token = useAuthStore.getState().token;
-  if (token) headers.set("Authorization", `Bearer ${token}`);
+  if (token && trusted) headers.set("Authorization", `Bearer ${token}`);
 
-  const res = await fetch(resolveUrl(path), {
+  const res = await fetch(url, {
     ...init,
     method,
     headers,
@@ -44,7 +55,7 @@ async function request<T>(method: Method, path: string, body?: unknown, init?: R
 
   const payload = await parseBody(res);
   if (!res.ok) {
-    if (res.status === 401) useAuthStore.getState().clear();
+    if (res.status === 401 && trusted) useAuthStore.getState().clear();
     const message =
       payload && typeof payload === "object" && "message" in payload
         ? String((payload as { message: unknown }).message)
