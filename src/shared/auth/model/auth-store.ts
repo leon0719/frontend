@@ -9,6 +9,15 @@ export function setAuthAdapter(next: AuthAdapter): void {
   adapter = next;
 }
 
+// 直接讀 import.meta.env(而非 shared/config 的載入期快照),測試才能以 vi.stubEnv 覆蓋。
+function assertAdapterSafeForProd(): void {
+  if (import.meta.env.PROD && adapter === fakeAuthAdapter) {
+    throw new Error(
+      "fakeAuthAdapter must not be used in production; call setAuthAdapter(realAdapter) at startup",
+    );
+  }
+}
+
 interface AuthState {
   user: User | null;
   token: string | null;
@@ -24,6 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   status: "idle",
   login: async (credentials) => {
+    assertAdapterSafeForProd();
     set({ status: "loading" });
     try {
       const { user, token } = await adapter.login(credentials);
@@ -42,6 +52,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: null, token: null, status: "unauthenticated" });
   },
   init: async () => {
+    assertAdapterSafeForProd();
     set({ status: "loading" });
     const session = await adapter.me();
     if (session) {

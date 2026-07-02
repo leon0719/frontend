@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeAuthAdapter } from "../adapter/fake-adapter";
 import { setAuthAdapter, useAuthStore } from "./auth-store";
 
@@ -76,5 +76,37 @@ describe("useAuthStore", () => {
   it("init() ends unauthenticated when no token exists", async () => {
     await useAuthStore.getState().init();
     expect(useAuthStore.getState().status).toBe("unauthenticated");
+  });
+
+  describe("production guard", () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it("login() fails fast when the fake adapter is still active in production", async () => {
+      vi.stubEnv("PROD", true);
+      await expect(
+        useAuthStore.getState().login({ username: "admin", password: "admin" }),
+      ).rejects.toThrow(/production/);
+    });
+
+    it("init() fails fast when the fake adapter is still active in production", async () => {
+      vi.stubEnv("PROD", true);
+      await expect(useAuthStore.getState().init()).rejects.toThrow(/production/);
+    });
+
+    it("allows a real adapter in production", async () => {
+      vi.stubEnv("PROD", true);
+      setAuthAdapter({
+        login: async () => ({
+          user: { id: "9", name: "real", roles: ["user"] },
+          token: "real-token",
+        }),
+        logout: async () => {},
+        me: async () => null,
+      });
+      await useAuthStore.getState().login({ username: "x", password: "y" });
+      expect(useAuthStore.getState().status).toBe("authenticated");
+    });
   });
 });
