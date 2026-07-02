@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { i18n } from "@/shared/i18n";
+import { reportError } from "@/shared/lib/report-error";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -18,8 +19,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error("ErrorBoundary caught an error", error, info);
+    reportError(error, { componentStack: info.componentStack });
   }
+
+  handleRetry = (): void => {
+    this.setState({ hasError: false });
+  };
 
   render(): ReactNode {
     if (this.state.hasError) {
@@ -30,6 +35,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <div className="p-8 text-center">
             <h1 className="text-lg font-medium">{i18n.t("common.error.title")}</h1>
             <p className="text-foreground/60">{i18n.t("common.error.description")}</p>
+            <button
+              type="button"
+              onClick={this.handleRetry}
+              className="mt-4 h-9 rounded-md border border-foreground/20 px-4 text-sm"
+            >
+              {i18n.t("common.error.retry")}
+            </button>
           </div>
         )
       );

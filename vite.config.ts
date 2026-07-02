@@ -9,6 +9,10 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
+  build: {
+    // 產 sourcemap 供錯誤追蹤服務使用,但不在瀏覽器 devtools 對外曝光
+    sourcemap: "hidden",
+  },
   test: {
     environment: "jsdom",
     globals: true,

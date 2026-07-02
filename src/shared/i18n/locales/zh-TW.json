@@ -5,7 +5,8 @@
     "forbidden": "403 — 您沒有存取此頁面的權限",
     "error": {
       "title": "發生錯誤",
-      "description": "請重新整理頁面，或稍後再試。"
+      "description": "請重新整理頁面，或稍後再試。",
+      "retry": "重試"
     },
     "notFound": {
       "title": "404 — 找不到頁面",

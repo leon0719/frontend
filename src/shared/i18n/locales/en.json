@@ -5,7 +5,8 @@
     "forbidden": "403 — You don't have permission to access this page",
     "error": {
       "title": "Something went wrong",
-      "description": "Please refresh the page or try again later."
+      "description": "Please refresh the page or try again later.",
+      "retry": "Retry"
     },
     "notFound": {
       "title": "404 — Page not found",
