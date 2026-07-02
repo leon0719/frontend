@@ -9,9 +9,14 @@
     "preview": "vite preview",
     "format": "biome check --write ./src",
     "lint": "biome lint ./src",
+    "lint:ci": "biome ci ./src",
+    "prepare": "simple-git-hooks",
     "type-check": "tsc --noEmit -p tsconfig.app.json",
     "test": "vitest run",
     "test:watch": "vitest"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "bun run lint && bun run type-check"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -42,6 +47,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "jsdom": "^29.1.1",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "~6.0.2",
     "vite": "^8.1.0",
     "vitest": "^4.1.9"

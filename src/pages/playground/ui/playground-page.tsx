@@ -40,9 +40,15 @@ export function PlaygroundPage() {
           <label htmlFor="name" className="text-sm font-medium">
             {t("pages.playground.nameLabel")}
           </label>
-          <Input id="name" placeholder={t("pages.playground.namePlaceholder")} {...register("name")} />
+          <Input
+            id="name"
+            placeholder={t("pages.playground.namePlaceholder")}
+            {...register("name")}
+          />
           {errors.name && (
-            <p className="text-sm text-destructive">{t(errors.name.message as PlaygroundFieldKey)}</p>
+            <p className="text-sm text-destructive">
+              {t(errors.name.message as PlaygroundFieldKey)}
+            </p>
           )}
         </div>
         <Button type="submit" className="w-fit">
@@ -50,7 +56,9 @@ export function PlaygroundPage() {
         </Button>
       </form>
 
-      {name && <p className="mt-6 text-lg font-semibold">{t("pages.playground.greeting", { name })}</p>}
+      {name && (
+        <p className="mt-6 text-lg font-semibold">{t("pages.playground.greeting", { name })}</p>
+      )}
     </main>
   );
 }

@@ -38,7 +38,12 @@ async function parseBody(res: Response): Promise<unknown> {
   }
 }
 
-async function request<T>(method: Method, path: string, body?: unknown, init?: RequestInit): Promise<T> {
+async function request<T>(
+  method: Method,
+  path: string,
+  body?: unknown,
+  init?: RequestInit,
+): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Content-Type", "application/json");
   const url = resolveUrl(path);

@@ -6,7 +6,6 @@ export function usePermission() {
   const roles = user?.roles ?? [];
   return {
     hasRole: (role: Role): boolean => roles.includes(role),
-    hasAnyRole: (candidates: Role[]): boolean =>
-      candidates.some((r) => roles.includes(r)),
+    hasAnyRole: (candidates: Role[]): boolean => candidates.some((r) => roles.includes(r)),
   };
 }

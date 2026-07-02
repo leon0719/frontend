@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type UseFormProps, type UseFormReturn, useForm } from "react-hook-form";
-import type { z, ZodType } from "zod";
+import type { ZodType, z } from "zod";
 
 export function useZodForm<S extends ZodType<any, any>>(
   schema: S,

@@ -13,7 +13,9 @@ export function RequireRole({ role, children, fallback }: RequireRoleProps) {
   const { hasRole } = usePermission();
   const { t } = useTranslation();
   if (!hasRole(role)) {
-    return fallback ?? <div className="p-8 text-center text-destructive">{t("common.forbidden")}</div>;
+    return (
+      fallback ?? <div className="p-8 text-center text-destructive">{t("common.forbidden")}</div>
+    );
   }
   return <>{children}</>;
 }

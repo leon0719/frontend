@@ -3,7 +3,10 @@ import { useAuthStore } from "@/shared/auth";
 import { ApiError, apiGet, apiPost } from "./client";
 
 const ok = (body: unknown) =>
-  new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
+  new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 
 const makeStorage = (): Storage => {
   let store: Record<string, string> = {};
@@ -19,7 +22,9 @@ const makeStorage = (): Storage => {
       store = {};
     },
     key: () => null,
-    get length() { return Object.keys(store).length; },
+    get length() {
+      return Object.keys(store).length;
+    },
   } as Storage;
 };
 

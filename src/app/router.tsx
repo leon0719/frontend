@@ -3,8 +3,8 @@ import {
   createRoute,
   createRouter,
   lazyRouteComponent,
-  redirect,
   type RouterHistory,
+  redirect,
 } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { initAuth, useAuthStore } from "@/shared/auth";
