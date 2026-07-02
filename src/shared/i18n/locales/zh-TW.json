@@ -6,6 +6,10 @@
     "error": {
       "title": "發生錯誤",
       "description": "請重新整理頁面，或稍後再試。"
+    },
+    "notFound": {
+      "title": "404 — 找不到頁面",
+      "description": "您要找的頁面不存在，請確認網址是否正確。"
     }
   },
   "auth": {

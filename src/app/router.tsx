@@ -1,33 +1,52 @@
-import { createRootRoute, createRoute, createRouter, redirect } from "@tanstack/react-router";
-import { AdminPage } from "@/pages/admin";
-import { DemoPage } from "@/pages/demo";
-import { HomePage } from "@/pages/home";
-import { LoginPage } from "@/pages/login";
-import { PlaygroundPage } from "@/pages/playground";
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  lazyRouteComponent,
+  redirect,
+  type RouterHistory,
+} from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { initAuth, useAuthStore } from "@/shared/auth";
 import { AppLayout } from "@/shared/ui";
+
+function NotFoundPage() {
+  const { t } = useTranslation();
+  return (
+    <div className="p-8 text-center">
+      <h1 className="text-lg font-medium">{t("common.notFound.title")}</h1>
+      <p className="text-foreground/60">{t("common.notFound.description")}</p>
+    </div>
+  );
+}
 
 const rootRoute = createRootRoute({ component: AppLayout });
 
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: HomePage,
+  component: lazyRouteComponent(() => import("@/pages/home"), "HomePage"),
 });
 const demoRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/demo",
-  component: DemoPage,
+  component: lazyRouteComponent(() => import("@/pages/demo"), "DemoPage"),
 });
 const playgroundRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/playground",
-  component: PlaygroundPage,
+  component: lazyRouteComponent(() => import("@/pages/playground"), "PlaygroundPage"),
 });
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
-  component: LoginPage,
+  beforeLoad: async () => {
+    await initAuth();
+    if (useAuthStore.getState().status === "authenticated") {
+      throw redirect({ to: "/" });
+    }
+  },
+  component: lazyRouteComponent(() => import("@/pages/login"), "LoginPage"),
 });
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -38,7 +57,7 @@ const adminRoute = createRoute({
       throw redirect({ to: "/login" });
     }
   },
-  component: AdminPage,
+  component: lazyRouteComponent(() => import("@/pages/admin"), "AdminPage"),
 });
 
 const routeTree = rootRoute.addChildren([
@@ -49,7 +68,15 @@ const routeTree = rootRoute.addChildren([
   adminRoute,
 ]);
 
-export const router = createRouter({ routeTree });
+export function createAppRouter(options?: { history?: RouterHistory }) {
+  return createRouter({
+    routeTree,
+    defaultNotFoundComponent: NotFoundPage,
+    history: options?.history,
+  });
+}
+
+export const router = createAppRouter();
 
 declare module "@tanstack/react-router" {
   interface Register {

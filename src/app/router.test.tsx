@@ -1,8 +1,8 @@
-import { RouterProvider } from "@tanstack/react-router";
+import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
 import { render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resetAuthForTests, useAuthStore } from "@/shared/auth/model/auth-store";
-import { router } from "./router";
+import { createAppRouter, router } from "./router";
 
 const makeStorage = (): Storage => {
   const store: Record<string, string> = {};
@@ -24,6 +24,14 @@ const makeStorage = (): Storage => {
   };
 };
 
+const renderAt = (path: string) => {
+  const testRouter = createAppRouter({
+    history: createMemoryHistory({ initialEntries: [path] }),
+  });
+  const utils = render(<RouterProvider router={testRouter} />);
+  return { testRouter, ...utils };
+};
+
 describe("router", () => {
   beforeEach(() => {
     vi.stubGlobal("localStorage", makeStorage());
@@ -38,20 +46,31 @@ describe("router", () => {
   });
 
   it("redirects an unauthenticated visitor from /admin to /login", async () => {
-    render(<RouterProvider router={router} />);
-    await router.navigate({ to: "/admin" });
+    const { testRouter } = renderAt("/admin");
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe("/login");
+      expect(testRouter.state.location.pathname).toBe("/login");
+    });
+  });
+
+  it("renders a 404 page for unknown paths", async () => {
+    const { findByText } = renderAt("/does-not-exist");
+    expect(await findByText(/404/)).toBeInTheDocument();
+  });
+
+  it("redirects an authenticated visitor away from /login", async () => {
+    localStorage.setItem("auth.token", "fake-token-user");
+    const { testRouter } = renderAt("/login");
+    await waitFor(() => {
+      expect(testRouter.state.location.pathname).toBe("/");
     });
   });
 
   it("lets a cold-loaded session reach /admin once restored from storage", async () => {
     // 模擬硬重新整理:localStorage 有 token,但 store 尚未 init
     localStorage.setItem("auth.token", "fake-token-admin");
-    render(<RouterProvider router={router} />);
-    await router.navigate({ to: "/admin" });
+    const { testRouter } = renderAt("/admin");
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe("/admin");
+      expect(testRouter.state.location.pathname).toBe("/admin");
     });
     expect(useAuthStore.getState().status).toBe("authenticated");
   });
