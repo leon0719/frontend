@@ -12,9 +12,6 @@ export function HomePage() {
         <Link to="/demo">
           <Button>{t("pages.home.toDemo")}</Button>
         </Link>
-        <Link to="/playground">
-          <Button variant="outline">{t("pages.home.toPlayground")}</Button>
-        </Link>
       </div>
     </main>
   );

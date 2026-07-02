@@ -32,11 +32,6 @@ const demoRoute = createRoute({
   path: "/demo",
   component: lazyRouteComponent(() => import("@/pages/demo"), "DemoPage"),
 });
-const playgroundRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/playground",
-  component: lazyRouteComponent(() => import("@/pages/playground"), "PlaygroundPage"),
-});
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
@@ -60,13 +55,7 @@ const adminRoute = createRoute({
   component: lazyRouteComponent(() => import("@/pages/admin"), "AdminPage"),
 });
 
-const routeTree = rootRoute.addChildren([
-  homeRoute,
-  demoRoute,
-  playgroundRoute,
-  loginRoute,
-  adminRoute,
-]);
+const routeTree = rootRoute.addChildren([homeRoute, demoRoute, loginRoute, adminRoute]);
 
 export function createAppRouter(options?: { history?: RouterHistory }) {
   return createRouter({

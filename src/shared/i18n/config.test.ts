@@ -21,6 +21,6 @@ describe("i18n config", () => {
   });
 
   it("interpolates values", () => {
-    expect(i18n.t("pages.playground.greeting", { name: "Ada" })).toBe("Hello, Ada");
+    expect(i18n.t("pages.demo.form.greeting", { name: "Ada" })).toBe("Hello, Ada");
   });
 });

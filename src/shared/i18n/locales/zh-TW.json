@@ -28,26 +28,24 @@
     "home": {
       "title": "React FSD Template",
       "subtitle": "Vite + React 19 + TanStack + Tailwind，採 FSD pages-first 架構。",
-      "toDemo": "前往 Demo 頁",
-      "toPlayground": "前往 Playground"
+      "toDemo": "前往 Demo 頁"
     },
     "demo": {
       "title": "Demo：TanStack Query",
       "loading": "載入中…",
-      "error": "載入失敗"
+      "error": "載入失敗",
+      "form": {
+        "title": "Zustand · React Hook Form · Zod 示範",
+        "nameLabel": "你的名字",
+        "namePlaceholder": "輸入至少 2 個字",
+        "nameMin": "至少 2 個字",
+        "submit": "送出",
+        "greeting": "Hello, {{name}}"
+      }
     },
     "admin": {
       "title": "Admin Area",
       "body": "只有 admin 角色看得到這個頁面。"
-    },
-    "playground": {
-      "title": "Playground",
-      "subtitle": "Zustand · React Hook Form · Zod · lucide-react 示範。",
-      "nameLabel": "你的名字",
-      "namePlaceholder": "輸入至少 2 個字",
-      "nameMin": "至少 2 個字",
-      "submit": "送出",
-      "greeting": "Hello, {{name}}"
     }
   }
 }

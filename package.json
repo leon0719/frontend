@@ -12,7 +12,7 @@
     "lint:ci": "biome ci ./src",
     "lint:fsd": "steiger ./src",
     "prepare": "simple-git-hooks",
-    "type-check": "tsc --noEmit -p tsconfig.app.json",
+    "type-check": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest"
   },

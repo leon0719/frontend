@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { useAuth } from "@/shared/auth";
-import { useZodForm } from "@/shared/lib/form";
+import { useZodForm } from "@/shared/lib";
 import { Button, Input } from "@/shared/ui";
 
 // Keep in sync with the zod schema messages below (each must be a valid i18n key).

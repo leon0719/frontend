@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { i18n } from "@/shared/i18n";
-import { reportError } from "@/shared/lib/report-error";
+import { reportError } from "@/shared/lib";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
