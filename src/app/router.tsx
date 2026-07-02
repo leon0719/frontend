@@ -4,7 +4,7 @@ import { DemoPage } from "@/pages/demo";
 import { HomePage } from "@/pages/home";
 import { LoginPage } from "@/pages/login";
 import { PlaygroundPage } from "@/pages/playground";
-import { useAuthStore } from "@/shared/auth";
+import { initAuth, useAuthStore } from "@/shared/auth";
 import { AppLayout } from "@/shared/ui";
 
 const rootRoute = createRootRoute({ component: AppLayout });
@@ -32,7 +32,8 @@ const loginRoute = createRoute({
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin",
-  beforeLoad: () => {
+  beforeLoad: async () => {
+    await initAuth();
     if (useAuthStore.getState().status !== "authenticated") {
       throw redirect({ to: "/login" });
     }

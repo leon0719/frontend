@@ -28,6 +28,19 @@ interface AuthState {
   init: () => Promise<void>;
 }
 
+// session-ready promise:route guard 與 app 啟動共用同一次 init(),
+// 確保硬重新整理/深連結時 beforeLoad 會等 session 恢復完才判斷。
+let sessionReady: Promise<void> | null = null;
+
+export function initAuth(): Promise<void> {
+  sessionReady ??= useAuthStore.getState().init();
+  return sessionReady;
+}
+
+export function resetAuthForTests(): void {
+  sessionReady = null;
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
