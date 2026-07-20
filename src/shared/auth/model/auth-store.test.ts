@@ -78,6 +78,23 @@ describe("useAuthStore", () => {
     expect(useAuthStore.getState().status).toBe("unauthenticated");
   });
 
+  it("init() falls back to unauthenticated when adapter.me() rejects", async () => {
+    setAuthAdapter({
+      login: async () => {
+        throw new Error("unused");
+      },
+      logout: async () => {},
+      me: async () => {
+        throw new Error("network down");
+      },
+    });
+    await expect(useAuthStore.getState().init()).resolves.toBeUndefined();
+    const s = useAuthStore.getState();
+    expect(s.status).toBe("unauthenticated");
+    expect(s.user).toBeNull();
+    expect(s.token).toBeNull();
+  });
+
   describe("production guard", () => {
     afterEach(() => {
       vi.unstubAllEnvs();

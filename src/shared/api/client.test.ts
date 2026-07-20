@@ -92,6 +92,22 @@ describe("api client", () => {
     expect(useAuthStore.getState().status).toBe("authenticated");
   });
 
+  it("omits Content-Type on a bodyless GET (avoids needless CORS preflight)", async () => {
+    const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(ok({}));
+    await apiGet("/items");
+    const init = spy.mock.calls[0][1] as RequestInit;
+    const headers = new Headers(init.headers);
+    expect(headers.get("Content-Type")).toBeNull();
+  });
+
+  it("sets Content-Type: application/json when a body is present", async () => {
+    const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(ok({}));
+    await apiPost("/items", { name: "x" });
+    const init = spy.mock.calls[0][1] as RequestInit;
+    const headers = new Headers(init.headers);
+    expect(headers.get("Content-Type")).toBe("application/json");
+  });
+
   it("sends a JSON body on POST", async () => {
     const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(ok({ ok: true }));
     await apiPost("/items", { name: "x" });

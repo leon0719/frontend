@@ -67,7 +67,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   init: async () => {
     assertAdapterSafeForProd();
     set({ status: "loading" });
-    const session = await adapter.me();
+    // me() 失敗(網路瞬斷、後端 5xx)視同未登入,不可讓 rejection 往上冒:
+    // initAuth 會快取這個 promise,一旦 reject 所有 route 的 beforeLoad 都會永久炸掉。
+    let session: Awaited<ReturnType<AuthAdapter["me"]>> = null;
+    try {
+      session = await adapter.me();
+    } catch {
+      session = null;
+    }
     if (session) {
       set({ user: session.user, token: session.token, status: "authenticated" });
     } else {

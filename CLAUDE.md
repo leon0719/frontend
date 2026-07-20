@@ -4,7 +4,7 @@
 
 ## Commands
 - `bun run dev` — 開發伺服器
-- `bun run build` — 型別檢查 + 打包（route-level code splitting、hidden sourcemap、React Compiler）
+- `bun run build` — 打包（route-level code splitting、hidden sourcemap、React Compiler）;型別檢查由 `type-check` 獨立負責（CI 與 pre-commit 都會跑）
 - `bun run format` — Biome 格式化 + 修正 + 整理 import
 - `bun run lint` — Biome 靜態檢查（`lint:ci` 為 CI 用的 lint+format 全檢）
 - `bun run lint:fsd` — steiger 檢查 FSD 邊界（例外規則見 `steiger.config.ts`）

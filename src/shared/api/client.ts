@@ -45,7 +45,8 @@ async function request<T>(
   init?: RequestInit,
 ): Promise<T> {
   const headers = new Headers(init?.headers);
-  headers.set("Content-Type", "application/json");
+  // 只在真的有 body 時標 JSON;bodyless GET/DELETE 帶 Content-Type 會多觸發 CORS preflight
+  if (body !== undefined || init?.body != null) headers.set("Content-Type", "application/json");
   const url = resolveUrl(path);
   const trusted = isApiOrigin(url);
   const token = useAuthStore.getState().token;
