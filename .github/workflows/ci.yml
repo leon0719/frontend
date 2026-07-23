@@ -17,3 +17,60 @@ jobs:
       - run: bun run type-check
       - run: bun run test
       - run: bun run build
+
+  # 掃工作目錄 + 完整 git 歷史,攔機密外洩。
+  # 注意 VITE_* 變數會被打包進 bundle,本來就不該放機密 —— 但 .env.local、
+  # 部署用的 AWS 憑證這類東西仍可能被誤 commit。
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # gitleaks 要掃歷史,不能用 shallow clone
+
+      - name: gitleaks
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest \
+            detect --source /repo --redact --verbose --exit-code 1
+
+  # CI 紅了但沒人知道,等同於沒有 CI。GitHub 預設只寄 email,通常沉在信箱裡。
+  # 只在 main 分支失敗時通知 —— PR 的紅燈作者自己看得到,不需要吵整個 channel。
+  notify:
+    if: failure() && github.ref == 'refs/heads/main'
+    needs: [checks, secrets]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        env:
+          WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::warning title=CI 失敗通知未啟用::未設定 SLACK_WEBHOOK_URL secret,這次的 CI 失敗沒有通知到 Slack。設定步驟見 README.md 的「錯誤追蹤與告警」。"
+            exit 0
+          fi
+          curl -fsS -X POST "$WEBHOOK" \
+            -H 'Content-Type: application/json' \
+            -d @- <<JSON
+          {
+            "text": ":rotating_light: CI failed on \`main\` — ${{ github.repository }}",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": ":rotating_light: *CI failed on \`main\`*\n*Repo:* ${{ github.repository }}\n*Commit:* \`${{ github.sha }}\`\n*Author:* ${{ github.actor }}"
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": { "type": "plain_text", "text": "查看 workflow run" },
+                    "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                ]
+              }
+            ]
+          }
+          JSON
