@@ -133,6 +133,16 @@ describe("api client", () => {
     expect((await apiGet("/bad").catch((e) => e)) instanceof ApiError).toBe(true);
   });
 
+  it("reads the message from a BaseResponse error envelope", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ data: null, error: { code: 422, message: "帳號重複" } }), {
+        status: 422,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    await expect(apiGet("/bad")).rejects.toMatchObject({ status: 422, message: "帳號重複" });
+  });
+
   it("clears the auth session on 401", async () => {
     useAuthStore.setState({
       user: { id: "1", name: "admin", roles: ["admin"] },

@@ -92,6 +92,22 @@ pre-commit hook（simple-git-hooks,`bun install` 時自動安裝）跑 lint + ty
 - zod 訊息：schema 的 message 放 i18n key（如 `"auth.login.usernameRequired"`），畫面以 `t(errors.x.message)` 渲染。
 - ErrorBoundary 特例：它位於 `I18nextProvider` 之外，故用全域 `i18n.t(...)` 而非 `useTranslation` hook。
 
+- **API 型別對齊後端合約**（06、附錄01）：Response / POST / PATCH 型別一律固定欄位,可空用 `| null`,
+  **不用 `?`**;`?` 只用於查詢參數。可空判斷用 `=== null`。契約 interface 欄位加 JSDoc（對齊後端 summary）。
+- **後端字串列舉用字面值聯集**（附錄04）：`type Status = "success" | "account_not_found"`,值照抄後端字串碼,不用 TS `enum`。
+- **錯誤格式**：團隊後端回 `BaseResponse<T>`（`{ data, error: { code, message } }`）;`ApiError.message`
+  已會讀 `error.message`。成功時是否解包 `data` 由各專案 api hook 自行處理。
+- **時間一律 UTC 契約**（06 第五節）：送出必帶時區位移（`toISOString()` 或 `+08:00`）;顯示前 `new Date(v)` 再
+  格式化,**禁止** `slice(0, 10)` 截字串;只選日期的欄位,起始補 `00:00:00+08:00`、截止補 `23:59:59.999999+08:00`。
+- **導頁用連結**（07）：單純換頁用 `<Link>`,不用 `onClick` + `navigate`;需先驗證/確認/送 API 成功後才導頁才用 `navigate`。
+- **路由命名**（04）：path 用 kebab-case 複數名詞,ID 用路由參數（`/users/$userId`）而非 query string。
+- **函數宣告**（附錄02）：頂層函數用 `function`;箭頭函式只用於參數或物件屬性值。
+- **預簽名上傳**：照 `12.預簽名上傳串接.md` 的流程。
+
+不適用（與本模板衝突,維持模板做法）：`components/ composables/ services/ stores/` 目錄結構（用 FSD）、
+PascalCase / `xxxService.ts` 檔名（用 kebab-case）、測試集中 `src/__tests__/`（測試與原始碼並排）、
+axios / Pinia / oxlint / npm / nvm、Quasar 測試慣例、「禁用 Utility Types」與「頁面型別不得 import service 型別」。
+
 ## 開發方式
 - **TDD**：每個原件先寫失敗測試（RED）→ 最小實作（GREEN）→ 重構（REFACTOR）。
 - 新增 page 用 `scaffold-page` skill；變更後跑 `check` skill（Biome + tsc + Vitest）。

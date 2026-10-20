@@ -22,10 +22,10 @@ bun run dev
 | 指令 | 說明 |
 | --- | --- |
 | `bun run dev` | 開發伺服器 |
-| `bun run build` | 型別檢查 + 打包 |
+| `bun run build` | 打包（型別檢查由 `type-check` 獨立負責） |
 | `bun run format` | Biome 格式化 + 修正 + 整理 import |
 | `bun run lint` | Biome 靜態檢查 |
-| `bun run type-check` | `tsc --noEmit` |
+| `bun run type-check` | `tsc -b`（app + node 兩個 project） |
 | `bun run test` | Vitest |
 
 ## 目錄結構（FSD）

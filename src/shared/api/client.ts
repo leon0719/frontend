@@ -28,6 +28,14 @@ function isApiOrigin(url: string): boolean {
   return new URL(url, location.origin).origin === apiOrigin;
 }
 
+// 支援兩種錯誤格式:頂層 { message } 與團隊後端的 BaseResponse { data, error: { code, message } }
+function errorMessage(payload: unknown): string | undefined {
+  if (!payload || typeof payload !== "object") return undefined;
+  const p = payload as { message?: unknown; error?: { message?: unknown } | null };
+  const message = p.error?.message ?? p.message;
+  return message === undefined ? undefined : String(message);
+}
+
 async function parseBody(res: Response): Promise<unknown> {
   const text = await res.text();
   if (!text) return null;
@@ -62,10 +70,7 @@ async function request<T>(
   const payload = await parseBody(res);
   if (!res.ok) {
     if (res.status === 401 && trusted) useAuthStore.getState().clear();
-    const message =
-      payload && typeof payload === "object" && "message" in payload
-        ? String((payload as { message: unknown }).message)
-        : `${method} ${path} failed with ${res.status}`;
+    const message = errorMessage(payload) ?? `${method} ${path} failed with ${res.status}`;
     throw new ApiError(res.status, message, payload);
   }
   return payload as T;
