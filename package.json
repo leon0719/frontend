@@ -14,7 +14,8 @@
     "prepare": "simple-git-hooks",
     "type-check": "tsc -b",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "gen:api": "openapi-typescript ${OPENAPI_URL:-http://localhost:8000/openapi.json} -o src/shared/api/schema.d.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "bun run lint && bun run type-check"
@@ -54,6 +55,7 @@
     "@vitejs/plugin-react": "^6.0.2",
     "babel-plugin-react-compiler": "^1.0.0",
     "jsdom": "^29.1.1",
+    "openapi-typescript": "^7.13.0",
     "simple-git-hooks": "^2.13.1",
     "steiger": "^0.5.13",
     "typescript": "~6.0.2",

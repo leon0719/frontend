@@ -2,6 +2,19 @@
 
 通用型 React 前端模板：Vite + React 19 + TS，FSD v2.1 pages-first，Biome 單一工具鏈。
 
+## 回應語言
+
+**一律使用繁體中文，採台灣本地化用語**——用 程式碼／資料／函式／物件／介面／型別／快取／預設／效能，
+不用 代碼／數據／函數／對象／接口／類型／緩存／默認／性能。即使以英文提問，回應仍用繁體中文。
+程式碼識別字、檔名、目錄名、套件名保持英文不翻譯。
+
+## ⛔ 只能由人執行
+
+不要自己執行——停下來，把完整指令交給使用者：
+- 部署（上傳到 S3／CloudFront 或任何 prod 環境）、讀寫 prod 的 `.env`
+- `git push`（任何分支）、force-push、改寫已推送的歷史
+- 呼叫真實的第三方 API／webhook（含 Sentry 以外的上報端點）
+
 ## Commands
 - `bun run dev` — 開發伺服器
 - `bun run build` — 打包（route-level code splitting、hidden sourcemap、React Compiler）;型別檢查由 `type-check` 獨立負責（CI 與 pre-commit 都會跑）
@@ -10,6 +23,8 @@
 - `bun run lint:fsd` — steiger 檢查 FSD 邊界（例外規則見 `steiger.config.ts`）
 - `bun run type-check` — `tsc -b`（涵蓋 app + node 兩個 project）
 - `bun run test` / `bun run test:watch` — Vitest
+- `bun run gen:api` — 從後端 OpenAPI 產生 `src/shared/api/schema.d.ts`（`OPENAPI_URL` 指定來源，預設
+  `http://localhost:8000/openapi.json`）。產物要 commit；Biome 不檢查它
 
 CI（`.github/workflows/ci.yml`）跑 lint:ci + lint:fsd + type-check + test + build;
 pre-commit hook（simple-git-hooks,`bun install` 時自動安裝）跑 lint + type-check。
@@ -66,10 +81,16 @@ pre-commit hook（simple-git-hooks,`bun install` 時自動安裝）跑 lint + ty
 > `shared/api`（攔截器）消費；放最底層才能讓「只能上層 import 下層」的鐵律成立。
 
 ### API client（`shared/api`）
-- `apiGet/apiPost/apiPut/apiDelete<T>(path, body?, init?)`
+- `apiGet/apiPost/apiPut/apiPatch/apiDelete<T>(path, body?, init?)`；部分更新用 `apiPatch`（後端更新端點是 PATCH）
+- **後端契約 `BaseResponse`**（Django Ninja / FastAPI / .NET 模板相同）：成功 `{ data, error: null }`，
+  失敗 `{ data: null, error: { code: <HTTP 狀態碼>, message, reason } }`。client 對自家 API 的回應**自動解包**
+  `data`，所以 `T` 寫內層型別（`apiGet<Article>`，不是 `apiGet<BaseResponse<Article>>`）
+- 錯誤分支用 `ApiError.reason`（穩定字串碼，如 `"username_taken"`，也可當 i18n key，如 `errors.<reason>`），
+  **不要比對 `message`**——那是給開發者看的英文，文案會變
+- 型別：有 `schema.d.ts` 時用 `components["schemas"]["XxxResponse"]`，不要手寫後端型別
 - **只對 API origin**（`VITE_API_BASE_URL`,未設定時為頁面同源）夾帶 `Authorization: Bearer <token>`;
   絕對 URL 指向其他 host 時不附 token（防憑證外洩）
-- 非 2xx 丟出 `ApiError`（`status` + `payload`）；同源 401 會自動清除 session
+- 非 2xx 丟出 `ApiError`（`status` + `reason` + `message` + `payload`）；同源 401 會自動清除 session
 
 ### 錯誤處理（`shared/lib` + `shared/ui`）
 - `reportError(error, context?)` / `setErrorReporter(fn)`:可插拔錯誤上報。接 Sentry 等服務時
@@ -92,24 +113,26 @@ pre-commit hook（simple-git-hooks,`bun install` 時自動安裝）跑 lint + ty
 - zod 訊息：schema 的 message 放 i18n key（如 `"auth.login.usernameRequired"`），畫面以 `t(errors.x.message)` 渲染。
 - ErrorBoundary 特例：它位於 `I18nextProvider` 之外，故用全域 `i18n.t(...)` 而非 `useTranslation` hook。
 
-- **API 型別對齊後端合約**（06、附錄01）：Response / POST / PATCH 型別一律固定欄位,可空用 `| null`,
-  **不用 `?`**;`?` 只用於查詢參數。可空判斷用 `=== null`。契約 interface 欄位加 JSDoc（對齊後端 summary）。
-- **後端字串列舉用字面值聯集**（附錄04）：`type Status = "success" | "account_not_found"`,值照抄後端字串碼,不用 TS `enum`。
-- **錯誤格式**：團隊後端回 `BaseResponse<T>`（`{ data, error: { code, message } }`）;`ApiError.message`
-  已會讀 `error.message`。成功時是否解包 `data` 由各專案 api hook 自行處理。
-- **時間一律 UTC 契約**（06 第五節）：送出必帶時區位移（`toISOString()` 或 `+08:00`）;顯示前 `new Date(v)` 再
-  格式化,**禁止** `slice(0, 10)` 截字串;只選日期的欄位,起始補 `00:00:00+08:00`、截止補 `23:59:59.999999+08:00`。
-- **導頁用連結**（07）：單純換頁用 `<Link>`,不用 `onClick` + `navigate`;需先驗證/確認/送 API 成功後才導頁才用 `navigate`。
-- **路由命名**（04）：path 用 kebab-case 複數名詞,ID 用路由參數（`/users/$userId`）而非 query string。
-- **函數宣告**（附錄02）：頂層函數用 `function`;箭頭函式只用於參數或物件屬性值。
-- **預簽名上傳**：照 `12.預簽名上傳串接.md` 的流程。
+## 前後端串接慣例
 
-不適用（與本模板衝突,維持模板做法）：`components/ composables/ services/ stores/` 目錄結構（用 FSD）、
-PascalCase / `xxxService.ts` 檔名（用 kebab-case）、測試集中 `src/__tests__/`（測試與原始碼並排）、
-axios / Pinia / oxlint / npm / nvm、Quasar 測試慣例、「禁用 Utility Types」與「頁面型別不得 import service 型別」。
+- **API 型別固定欄位**：Response / POST / PATCH 型別一律固定欄位，可空用 `| null`，**不用 `?`**；`?` 只用於查詢參數。
+  可空判斷用 `=== null`。手寫的契約 interface 欄位加 JSDoc（對齊後端欄位說明）。
+- **後端字串列舉用字面值聯集**：`type Status = "draft" | "published"`，值照抄後端，不用 TS `enum`。
+- **時間一律 UTC 契約**：送出必帶時區位移（`toISOString()` 或 `+08:00`）；顯示前 `new Date(v)` 再格式化，
+  **禁止** `slice(0, 10)` 截字串；只選日期的欄位，起始補 `00:00:00+08:00`、截止補 `23:59:59.999999+08:00`。
+- **導頁用連結**：單純換頁用 `<Link>`，不用 `onClick` + `navigate`；需先驗證/確認/送 API 成功後才導頁才用 `navigate`。
+- **路由命名**：path 用 kebab-case 複數名詞，ID 用路由參數（`/users/$userId`）而非 query string。
+- **函式宣告**：頂層函式用 `function`；箭頭函式只用於參數或物件屬性值。
 
 ## 開發方式
 - **TDD**：每個原件先寫失敗測試（RED）→ 最小實作（GREEN）→ 重構（REFACTOR）。
 - 新增 page 用 `scaffold-page` skill；變更後跑 `check` skill（Biome + tsc + Vitest）。
 - 提交前確認 `bun run lint && bun run type-check && bun run test` 全綠。
 - 設計與計畫文件置於 `docs/superpowers/`（已於 .gitignore 排除，屬本機輔助）。
+
+## Git
+
+- Commit 格式 `<type>: <中文說明>`，type 只有 `feat`／`fix`／`docs`／`style`／`refactor`／`test`／`chore`。
+  **說明用中文**、**不使用 scope**（不寫 `feat(auth):`）。
+- 破壞性變更（呼叫端不改程式就會壞）在 type 後加 `!`：`feat!: 移除 apiPut`。
+- 分支 `<類型>/<描述>`，類型只有 `feat`／`fix`／`refactor`／`docs`／`chore`；不直接 commit 到 `main`。

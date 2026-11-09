@@ -27,3 +27,6 @@ docs/superpowers/
 # Env files (Vite)
 .env*
 !.env.example
+
+# Claude Code 個人設定（專案共用的是 .claude/settings.json）
+.claude/settings.local.json
