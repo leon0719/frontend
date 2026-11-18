@@ -79,9 +79,13 @@ Everyday usage rules are in `CLAUDE.md`; this file covers the internals and the 
     invalidate 會合併去重。
   - 斷線一律關掉、自己重連：指數退避 3s→60s × jitter 0.5–1（`reconnectDelay`），連上歸零；重新連上時預設
     把 `invalidate` 裡全部 key 重抓一次（斷線期間漏掉的推播補不回來）。
-  - 認證：EventSource 不能帶 header。用 HttpOnly cookie 認證時傳 `withCredentials: true`（跨網域要後端 CORS 允許
-    credentials），不需要 token。非 cookie 的情況 token 只能放 query string，而 URL 會進瀏覽器歷史與 proxy log，
-    **不要放長效 access token**。後端提供短效、只能開 stream 的 token，前端以 `getStreamToken` 每次（重）連前取一顆。
+  - 認證（預設）：EventSource 不能帶 header，token 只能放 query string，而 URL 會進瀏覽器歷史與 proxy log，
+    **不要放長效 access token**。後端提供短效、只能開 stream 的 token，前端以 `getStreamToken` 每次（重）連前取一顆
+    （例：`apiPost("/auth/stream-token")`，這個請求本身走 cookie + CSRF，由 `apiPost` 自動處理）。
+  - 替代做法：傳 `withCredentials: true` 且不給 `getStreamToken`，讓瀏覽器直接帶 HttpOnly cookie（跨網域另需後端
+    CORS 允許 credentials）。**只有後端的 SSE 端點也接受認證 cookie 時才可行**：配套的 django-ninja 範本的
+    `GET /api/v1/realtime/sse` 用 `auth=[BearerAuth(), StreamTokenAuth()]`，`BearerAuth` 在 GET 也接受 cookie，所以那邊
+    可以；其他後端要先確認，否則照預設用 stream token。
   - callback / `invalidate` 對照表放 ref，inline 物件不會造成重連；`path`、`params`、`enabled`、事件名稱集合變了才重連。
 
 ## Error handling (`shared/lib` + `shared/ui`)
