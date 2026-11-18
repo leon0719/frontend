@@ -59,19 +59,46 @@ src/
 登入憑證是後端種的 HttpOnly cookie，前端不碰也不存任何 token：`login` 回傳 `User`，`logout` 呼叫後端清 cookie，`me` 打後端（瀏覽器自動帶 cookie）、未登入回 `null`。
 API origin 的請求由 `shared/api` 自動帶 `credentials: "include"`，寫入請求另外帶 `X-CSRFToken`（細節見 `docs/platform.md`）。
 
+以下以配套的 django-ninja 後端為例（路徑都在 `/api/v1` 底下）：
+
 ```ts
-import { type AuthAdapter, setAuthAdapter, type User } from "@/shared/auth";
-import { apiGet, apiPost } from "@/shared/api";
+import { ApiError, apiGet, apiPost } from "@/shared/api";
+import { type AuthAdapter, type Role, setAuthAdapter, type User } from "@/shared/auth";
+
+// 示意用：實際請用 `bun run gen:api` 產生的 components["schemas"]["MeResponse"]，不要手寫後端型別
+interface Me {
+  id: number;
+  username: string;
+  email: string;
+  roles: Role[];
+}
+
+function toUser(me: Me): User {
+  return { id: String(me.id), name: me.username, roles: me.roles }; // 後端 id 是數字，前端統一用字串
+}
 
 const realAdapter: AuthAdapter = {
-  login: (c) => apiPost<User>("/auth/login", c), // 後端以 Set-Cookie 發憑證，body 不含 token
-  logout: async () => {
-    await apiPost("/auth/logout"); // 後端清 cookie
+  async login(c) {
+    // 後端以 Set-Cookie 發憑證；body 只有 { mfa_required, challenge_token }，不是 user、也沒有 token
+    await apiPost("/api/v1/auth/login", c);
+    return toUser(await apiGet<Me>("/api/v1/auth/me"));
   },
-  me: () => apiGet<User>("/auth/me").catch(() => null), // 401 = 未登入
+  async logout() {
+    await apiPost("/api/v1/auth/logout"); // 後端撤銷 token 並清 cookie
+  },
+  async me() {
+    try {
+      return toUser(await apiGet<Me>("/api/v1/auth/me"));
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) return null; // 401 = 未登入
+      throw err; // 網路錯誤、5xx 不是「未登入」，不要吞掉
+    }
+  },
 };
 setAuthAdapter(realAdapter); // 在 app 啟動時呼叫一次
 ```
+
+啟用 MFA 的帳號，`/api/v1/auth/login` 會回 `mfa_required: true` 且**不設 cookie**（上例沒處理這條路徑）：要另做驗證碼畫面，帶 `challenge_token` 與 `code` 打 `/api/v1/auth/mfa/verify`，通過後才會設 cookie。
 
 ## 權限用法
 

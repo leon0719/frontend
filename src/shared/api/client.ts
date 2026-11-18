@@ -71,7 +71,7 @@ export function getCsrfToken(): Promise<string> {
   return pending;
 }
 
-/** 丟掉快取的 CSRF token(Django 登入時會輪替,舊的會被拒絕) */
+/** 丟掉快取的 CSRF token(API 主機上的 Django admin 登入會輪替它、csrftoken cookie 過期也會失效) */
 export function resetCsrfToken(): void {
   csrfToken = null;
 }
@@ -159,7 +159,7 @@ async function send(
     });
     if (res.ok) return { res, url };
     const payload = parseText(await res.text());
-    // token 過期或被輪替(如剛登入):重抓後只重送一次,再失敗就交給 settle 丟 ApiError
+    // token 過期或被輪替(如 API 主機上的 Django admin 登入):重抓後只重送一次,再失敗就交給 settle 丟 ApiError
     if (attempt === 0 && needsCsrf && isCsrfFailure(res.status, payload)) {
       resetCsrfToken();
       continue;

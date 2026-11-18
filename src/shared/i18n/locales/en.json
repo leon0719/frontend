@@ -7,6 +7,7 @@
     "close": "Close",
     "back": "Back",
     "logout": "Logout",
+    "logoutFailed": "Logout failed. Please try again later",
     "forbidden": "403 — You don't have permission to access this page",
     "error": {
       "title": "Something went wrong",

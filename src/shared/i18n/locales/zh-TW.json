@@ -7,6 +7,7 @@
     "close": "關閉",
     "back": "返回",
     "logout": "登出",
+    "logoutFailed": "登出失敗，請稍後再試",
     "forbidden": "403 — 您沒有存取此頁面的權限",
     "error": {
       "title": "發生錯誤",

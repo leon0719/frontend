@@ -48,7 +48,7 @@ Everyday usage rules are in `CLAUDE.md`; this file covers the internals and the 
   `GET /api/v1/auth/csrf` (`CSRF_PATH`, `credentials: "include"`, reads `data.csrf_token`; this also sets the
   `csrftoken` cookie) once and caches the promise in memory; a failed fetch is not cached and surfaces as
   `ApiError` (or `TypeError` on a network failure) before the write is sent. A 403 with
-  `reason: "csrf_failed"` (token rotated by login, or stale) → `resetCsrfToken()`, refetch, and retry
+  `reason: "csrf_failed"` (stale token: rotated by a Django `login()` on the API host such as the admin, or an expired `csrftoken` cookie) → `resetCsrfToken()`, refetch, and retry
   **exactly once**; a second `csrf_failed` throws `ApiError`. The backend checks CSRF before the session, so
   an expired/revoked cookie on a write shows up as `csrf_failed` first, then 401 on the retry (store cleared,
   no more retries). `apiUpload` (XHR) sends the same headers + `withCredentials` but does not retry; it only
