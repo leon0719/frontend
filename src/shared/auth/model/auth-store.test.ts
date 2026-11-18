@@ -26,12 +26,12 @@ describe("useAuthStore", () => {
   beforeEach(() => {
     vi.stubGlobal("localStorage", makeStorage());
     setAuthAdapter(fakeAuthAdapter);
-    useAuthStore.setState({ user: null, token: null, status: "idle" });
+    useAuthStore.setState({ user: null, status: "idle" });
   });
 
   it("starts unauthenticated by default", () => {
     expect(useAuthStore.getState().user).toBeNull();
-    expect(useAuthStore.getState().token).toBeNull();
+    expect("token" in useAuthStore.getState()).toBe(false);
   });
 
   it("logs in with valid credentials", async () => {
@@ -39,7 +39,6 @@ describe("useAuthStore", () => {
     const s = useAuthStore.getState();
     expect(s.status).toBe("authenticated");
     expect(s.user?.roles).toContain("admin");
-    expect(s.token).not.toBeNull();
   });
 
   it("rejects invalid credentials and stays unauthenticated", async () => {
@@ -49,33 +48,46 @@ describe("useAuthStore", () => {
     expect(useAuthStore.getState().status).toBe("unauthenticated");
   });
 
-  it("logout clears user, token and storage", async () => {
+  it("logout clears the user and the fake adapter's persisted account", async () => {
     await useAuthStore.getState().login({ username: "user", password: "user" });
     await useAuthStore.getState().logout();
-    const s = useAuthStore.getState();
-    expect(s.user).toBeNull();
-    expect(s.token).toBeNull();
-    expect(localStorage.getItem("auth.token")).toBeNull();
+    expect(useAuthStore.getState().user).toBeNull();
+    expect(useAuthStore.getState().status).toBe("unauthenticated");
+    expect(localStorage.getItem("auth.fake-user")).toBeNull();
+  });
+
+  it("the fake adapter persists only the account name, never a credential", async () => {
+    await useAuthStore.getState().login({ username: "admin", password: "admin" });
+    expect(localStorage.length).toBe(1);
+    expect(localStorage.getItem("auth.fake-user")).toBe("admin");
   });
 
   it("clear() resets state synchronously without calling adapter", async () => {
     await useAuthStore.getState().login({ username: "user", password: "user" });
     useAuthStore.getState().clear();
     expect(useAuthStore.getState().status).toBe("unauthenticated");
-    expect(localStorage.getItem("auth.token")).toBeNull();
+    expect(useAuthStore.getState().user).toBeNull();
   });
 
-  it("init() restores an existing session from a valid token", async () => {
+  it("init() restores an existing session through adapter.me()", async () => {
     await useAuthStore.getState().login({ username: "admin", password: "admin" });
-    useAuthStore.setState({ user: null, token: null, status: "idle" });
+    useAuthStore.setState({ user: null, status: "idle" });
     await useAuthStore.getState().init();
     expect(useAuthStore.getState().status).toBe("authenticated");
     expect(useAuthStore.getState().user?.name).toBe("admin");
   });
 
-  it("init() ends unauthenticated when no token exists", async () => {
+  it("init() ends unauthenticated when adapter.me() returns null", async () => {
+    setAuthAdapter({
+      login: async () => {
+        throw new Error("unused");
+      },
+      logout: async () => {},
+      me: async () => null,
+    });
     await useAuthStore.getState().init();
     expect(useAuthStore.getState().status).toBe("unauthenticated");
+    expect(useAuthStore.getState().user).toBeNull();
   });
 
   it("init() falls back to unauthenticated when adapter.me() rejects", async () => {
@@ -92,7 +104,6 @@ describe("useAuthStore", () => {
     const s = useAuthStore.getState();
     expect(s.status).toBe("unauthenticated");
     expect(s.user).toBeNull();
-    expect(s.token).toBeNull();
   });
 
   describe("production guard", () => {
@@ -115,10 +126,7 @@ describe("useAuthStore", () => {
     it("allows a real adapter in production", async () => {
       vi.stubEnv("PROD", true);
       setAuthAdapter({
-        login: async () => ({
-          user: { id: "9", name: "real", roles: ["user"] },
-          token: "real-token",
-        }),
+        login: async () => ({ id: "9", name: "real", roles: ["user"] }),
         logout: async () => {},
         me: async () => null,
       });

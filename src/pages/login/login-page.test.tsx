@@ -37,7 +37,7 @@ describe("LoginPage", () => {
     navigate.mockReset();
     localStorage.clear();
     setAuthAdapter(fakeAuthAdapter);
-    useAuthStore.setState({ user: null, token: null, status: "idle" });
+    useAuthStore.setState({ user: null, status: "idle" });
   });
 
   it("logs in and navigates home on valid credentials", async () => {
