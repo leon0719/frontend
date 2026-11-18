@@ -19,7 +19,9 @@ Everyday usage rules are in `CLAUDE.md`; this file covers the internals and the 
   auth internal and not part of the public API.
 - Fake accounts (template demo, fail-fast in prod): `admin/admin` (admin + user roles), `user/user` (user role).
 - Security: the token lives in localStorage, so any XSS can steal it. For production prefer an httpOnly
-  cookie issued by the backend, plus your own CSP / security headers (not built into the template).
+  cookie issued by the backend. A CSP `<meta>` is injected at build time (`cspMeta` in `vite.config.ts`;
+  `connect-src` comes from `VITE_API_BASE_URL` / `VITE_SENTRY_DSN` — add any new third-party origin there).
+  HSTS / `X-Frame-Options` / `nosniff` must come from the host as response headers (meta can't set them).
 - Frontend guards (`beforeLoad` / `RequireRole`) are UX only, not an authorization boundary; the backend
   must authorize independently.
 
